@@ -1,9 +1,9 @@
-#include "CacheLineSize.h"
+#include "cache_line_size.h"
 
 #if defined(__APPLE__)
 
 #include <sys/sysctl.h>
-size_t CacheLineSize() {
+size_t cache_line_size() {
 	size_t lineSize = 0;
 	size_t sizeOfLineSize = sizeof(lineSize);
 	sysctlbyname("hw.cachelinesize", &lineSize, &sizeOfLineSize, 0, 0);
@@ -14,7 +14,7 @@ size_t CacheLineSize() {
 
 #include <stdlib.h>
 #include <windows.h>
-size_t CacheLineSize() {
+size_t cache_line_size() {
 	size_t lineSize = 0;
 	DWORD bufferSize = 0;
 	DWORD i = 0;
@@ -37,16 +37,10 @@ size_t CacheLineSize() {
 
 #elif defined(__linux__)
 
-#include <stdio.h>
-size_t CacheLineSize() {
-	FILE * p = 0;
-	p = fopen("/sys/devices/system/cpu/cpu0/cache/index0/coherency_line_size", "r");
-	unsigned int lineSize = 0;
-	if (p) {
-		fscanf(p, "%d", &lineSize);
-		fclose(p);
-	}
-	return lineSize;
+#include <unistd.h>
+size_t cache_line_size() {
+	long lineSize = sysconf(_SC_LEVEL1_DCACHE_LINESIZE);
+	return lineSize < 0 ? 0 : (size_t)lineSize;
 }
 
 #else
